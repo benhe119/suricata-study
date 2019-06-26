@@ -1140,13 +1140,13 @@ int AppLayerParserParse(ThreadVars *tv, AppLayerParserThreadCtx *alp_tctx, Flow 
     void *alstate = NULL;
     uint64_t p_tx_cnt = 0;
 
-    /* we don't have the parser registered for this protocol */
+    /* 判断协议是否注册解析器 */
     if (p->StateAlloc == NULL)
         goto end;
 
     if (flags & STREAM_GAP) {
         if (!(p->option_flags & APP_LAYER_PARSER_OPT_ACCEPT_GAPS)) {
-            SCLogDebug("app-layer parser does not accept gaps");
+            SCLogDebug("应用程序层解析器不接受间隙 (存在丢包)");
             if (f->alstate != NULL) {
                 AppLayerParserStreamTruncated(f->proto, alproto, f->alstate,
                         flags);
@@ -1155,7 +1155,7 @@ int AppLayerParserParse(ThreadVars *tv, AppLayerParserThreadCtx *alp_tctx, Flow 
         }
     }
 
-    /* Get the parser state (if any) */
+    /* 获取解析器状态 (if any) */
     pstate = f->alparser;
     if (pstate == NULL) {
         f->alparser = pstate = AppLayerParserStateAlloc();
@@ -1171,7 +1171,7 @@ int AppLayerParserParse(ThreadVars *tv, AppLayerParserThreadCtx *alp_tctx, Flow 
         f->alstate = alstate = p->StateAlloc();
         if (alstate == NULL)
             goto error;
-        SCLogDebug("alloced new app layer state %p (name %s)",
+        SCLogDebug("分配新的应用程序层状态 %p (name %s)",
                    alstate, AppLayerGetProtoName(f->alproto));
     } else {
         SCLogDebug("using existing app layer state %p (name %s))",
@@ -1182,9 +1182,9 @@ int AppLayerParserParse(ThreadVars *tv, AppLayerParserThreadCtx *alp_tctx, Flow 
         p_tx_cnt = AppLayerParserGetTxCnt(f, f->alstate);
     }
 
-    /* invoke the recursive parser, but only on data. We may get empty msgs on EOF */
+    /* 调用递归解析器，但仅对数据调用。我们可能会在EOF上收到空的msg */
     if (input_len > 0 || (flags & STREAM_EOF)) {
-        /* invoke the parser */
+        /* 调用解析器 */
         if (p->Parser[(flags & STREAM_TOSERVER) ? 0 : 1](f, alstate, pstate,
                 input, input_len,
                 alp_tctx->alproto_local_storage[f->protomap][alproto],
@@ -1247,7 +1247,7 @@ int AppLayerParserParse(ThreadVars *tv, AppLayerParserThreadCtx *alp_tctx, Flow 
         }
     }
 
-    /* stream truncated, inform app layer */
+    /* 流截断，通知应用层 */
     if (flags & STREAM_DEPTH)
         AppLayerParserStreamTruncated(f->proto, alproto, alstate, flags);
 

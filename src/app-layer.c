@@ -426,7 +426,7 @@ static int TCPProtoDetect(ThreadVars *tv,
         /* Set a value that is neither STREAM_TOSERVER, nor STREAM_TOCLIENT */
         ssn->data_first_seen_dir = APP_LAYER_DATA_ALREADY_SENT_TO_APP_LAYER;
 
-        /* finally, invoke the parser */
+        /* 最后，调用解析器 */
         PACKET_PROFILING_APP_START(app_tctx, f->alproto);
         int r = AppLayerParserParse(tv, app_tctx->alp_tctx, f, f->alproto,
                 flags, data, data_len);

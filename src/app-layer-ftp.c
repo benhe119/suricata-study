@@ -309,11 +309,10 @@ static int FTPGetLine(FtpState *state)
 }
 
 /**
- * \brief This function is called to determine and set which command is being
- * transfered to the ftp server
- * \param ftp_state the ftp state structure for the parser
- * \param input input line of the command
- * \param len of the command
+ * \brief 函数的作用是确定和设置将哪个命令传输到ftp服务器
+ * \param ftp_state解析器的ftp状态结构
+ * \param 输入  命令的输入行
+ * \param       命令的长度
  *
  * \retval 1 when the command is parsed, 0 otherwise
  */
@@ -373,10 +372,10 @@ static void FtpTransferCmdFree(void *data)
 }
 
 /**
- * \brief This function is called to retrieve a ftp request
- * \param ftp_state the ftp state structure for the parser
- * \param input input line of the command
- * \param input_len length of the request
+ * \brief 调用此函数检索ftp请求
+ * \param ftp_state 解析器的ftp状态结构
+ * \param input 命令输入行
+ * \param input_len 请求数据长度
  * \param output the resulting output
  *
  * \retval 1 when the command is parsed, 0 otherwise
@@ -409,6 +408,7 @@ static int FTPParseRequest(Flow *f, void *ftp_state,
                                state->current_line, state->current_line_len);
         switch (state->command) {
             case FTP_COMMAND_PORT:
+				//主动模式
                 if (state->current_line_len > state->port_line_size) {
                     ptmp = FTPRealloc(state->port_line, state->port_line_size,
                                       state->current_line_len);
@@ -427,7 +427,7 @@ static int FTPParseRequest(Flow *f, void *ftp_state,
                 state->port_line_len = state->current_line_len;
                 break;
             case FTP_COMMAND_RETR:
-                /* change direction (default to server) so expectation will handle
+                /* 更改方向 (default to server) so expectation will handle
                  * the correct message when expectation will match.
                  */
                 direction = STREAM_TOCLIENT;
@@ -545,18 +545,21 @@ static int FTPParseResponse(Flow *f, void *ftp_state, AppLayerParserState *pstat
     FtpState *state = (FtpState *)ftp_state;
 
     if (state->command == FTP_COMMAND_AUTH_TLS) {
+		//234  AUTH command okay; starting SSL connection.
         if (input_len >= 4 && SCMemcmp("234 ", input, 4) == 0) {
             AppLayerRequestProtocolTLSUpgrade(f);
         }
     }
 
     if (state->command == FTP_COMMAND_PASV) {
+		//227进入被动模式(<h1,h2,h3,h4,p1,p2>)
         if (input_len >= 4 && SCMemcmp("227 ", input, 4) == 0) {
             FTPParsePassiveResponse(f, ftp_state, input, input_len);
         }
     }
 
     if (state->command == FTP_COMMAND_EPSV) {
+		//229   进入被动模式 (<message>).   IPV6
         if (input_len >= 4 && SCMemcmp("229 ", input, 4) == 0) {
             FTPParsePassiveResponseV6(f, ftp_state, input, input_len);
         }
@@ -913,6 +916,7 @@ void RegisterFTPParsers(void)
     }
 
     if (AppLayerParserConfParserEnabled("tcp", proto_name)) {
+		//注册函数指针   ,调用在app-layer-parser.c    文件AppLayerParserParse方法中
         AppLayerParserRegisterParser(IPPROTO_TCP, ALPROTO_FTP, STREAM_TOSERVER,
                                      FTPParseRequest);
         AppLayerParserRegisterParser(IPPROTO_TCP, ALPROTO_FTP, STREAM_TOCLIENT,

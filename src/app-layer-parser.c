@@ -1184,7 +1184,7 @@ int AppLayerParserParse(ThreadVars *tv, AppLayerParserThreadCtx *alp_tctx, Flow 
 
     /* 调用递归解析器，但仅对数据调用。我们可能会在EOF上收到空的msg */
     if (input_len > 0 || (flags & STREAM_EOF)) {
-        /* 调用解析器 */
+        /* 调用应用层解析器 */
         if (p->Parser[(flags & STREAM_TOSERVER) ? 0 : 1](f, alstate, pstate,
                 input, input_len,
                 alp_tctx->alproto_local_storage[f->protomap][alproto],
@@ -1194,7 +1194,7 @@ int AppLayerParserParse(ThreadVars *tv, AppLayerParserThreadCtx *alp_tctx, Flow 
         }
     }
 
-    /* set the packets to no inspection and reassembly if required */
+    /* 如果需要    可以设置数据包不检查并且不重新组装 */
     if (pstate->flags & APP_LAYER_PARSER_NO_INSPECTION) {
         AppLayerParserSetEOF(pstate);
         FlowSetNoPayloadInspectionFlag(f);
@@ -1202,7 +1202,7 @@ int AppLayerParserParse(ThreadVars *tv, AppLayerParserThreadCtx *alp_tctx, Flow 
         if (f->proto == IPPROTO_TCP) {
             StreamTcpDisableAppLayer(f);
 
-            /* Set the no reassembly flag for both the stream in this TcpSession */
+            /* 为这个TcpSession中的流设置no reassembly（不组装）标志 */
             if (pstate->flags & APP_LAYER_PARSER_NO_REASSEMBLY) {
                 /* Used only if it's TCP */
                 TcpSession *ssn = f->protoctx;
@@ -1213,7 +1213,7 @@ int AppLayerParserParse(ThreadVars *tv, AppLayerParserThreadCtx *alp_tctx, Flow 
                             flags & STREAM_TOSERVER ? 1 : 0);
                 }
             }
-            /* Set the bypass flag for both the stream in this TcpSession */
+            /* Set the bypass flag（设置旁路标志） for both the stream in this TcpSession */
             if (pstate->flags & APP_LAYER_PARSER_BYPASS_READY) {
                 /* Used only if it's TCP */
                 TcpSession *ssn = f->protoctx;

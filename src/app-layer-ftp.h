@@ -113,20 +113,23 @@ typedef struct FtpLineState_ {
 /** FTP State for app layer parser */
 typedef struct FtpState_ {
     uint8_t *input;
+
+    uint8_t direction;   //方向参数,判断toclient or toserver
     int32_t input_len;
-    uint8_t direction;
 
     /* --parser details-- */
-    /** current line extracted by the parser from the call to FTPGetline() */
+    /** 解析器从对FTPGetline()的调用中提取的当前行 */
+	//存拼接包数据，直到拼接完整命令行数据
     uint8_t *current_line;
-    /** length of the line in current_line.  Doesn't include the delimiter */
+	//存拼接包数据长度
+    /** 在current_line中的行的长度。不包括分隔符 */
     uint32_t current_line_len;
     uint8_t current_line_delimiter_len;
 
     /* 0 for toserver, 1 for toclient */
     FtpLineState line_state[2];
 
-    FtpRequestCommand command;
+    FtpRequestCommand command;   //FTP该会话交互命令  ,保存请求命令,方便判断解析回应;
     FtpRequestCommandArgOfs arg_offset;
     uint32_t port_line_len;
     uint32_t port_line_size;
